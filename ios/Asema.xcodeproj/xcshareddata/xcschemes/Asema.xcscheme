@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "asema.app"
-               BlueprintName = "asema"
-               ReferencedContainer = "container:asema.xcodeproj">
+               BuildableName = "Asema.app"
+               BlueprintName = "Asema"
+               ReferencedContainer = "container:Asema.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "asemaTests.xctest"
-               BlueprintName = "asemaTests"
-               ReferencedContainer = "container:asema.xcodeproj">
+               BuildableName = "AsemaTests.xctest"
+               BlueprintName = "AsemaTests"
+               ReferencedContainer = "container:Asema.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "asema.app"
-            BlueprintName = "asema"
-            ReferencedContainer = "container:asema.xcodeproj">
+            BuildableName = "Asema.app"
+            BlueprintName = "Asema"
+            ReferencedContainer = "container:Asema.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "asema.app"
-            BlueprintName = "asema"
-            ReferencedContainer = "container:asema.xcodeproj">
+            BuildableName = "Asema.app"
+            BlueprintName = "Asema"
+            ReferencedContainer = "container:Asema.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
