@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "newArchEnabled": true,
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/adaptive-icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -18,8 +18,9 @@
       "bundleIdentifier": "com.anonymous.asema"
     },
     "android": {
+      "icon": "./assets/images/icon.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "monochromeImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#262626"
       },
       "package": "com.anonymous.asema"
