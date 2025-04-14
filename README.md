@@ -1,6 +1,6 @@
 # Asema 
 
-<img src="./assets/images/adaptive-icon.svg" width="30%" align="right" />
+<img src="./assets/images/adaptive-icon-outline-scaled.svg" width="30%" align="right" />
 
 Platform browser is type of a web browser for interacting with multisided markets. Inspired by my Master's Thesis "Exploring business model for open digital platform from customer and operating system owner viewpoints" [https://urn.fi/URN:NBN:fi:aalto-202301291794](https://urn.fi/URN:NBN:fi:aalto-202301291794)
 

@@ -1,9 +1,9 @@
-import { TextInput, Button } from "react-native";
+import { View, TextInput } from "react-native";
 import { WebView } from 'react-native-webview';
-import Constants from 'expo-constants';
 import { StyleSheet } from 'react-native';
 import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Index() {
   const [text, onChangeText] = useState("https://react.dev");
@@ -14,10 +14,12 @@ export default function Index() {
   }
 
   return (
-    <>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="auto" backgroundColor="#000000" />
       <WebView
-        style={styles.container}
+        source={{ uri: url }}
+      />
+      <WebView
         source={{ uri: url }}
       />
       <TextInput
@@ -25,13 +27,12 @@ export default function Index() {
         onSubmitEditing={handleSubmit}
         value={text}
       />
-    </>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: Constants.statusBarHeight,
   },
 });
