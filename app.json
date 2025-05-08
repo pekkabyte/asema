@@ -23,6 +23,7 @@
         "monochromeImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#262626"
       },
+      "edgeToEdgeEnabled": true,
       "package": "com.anonymous.asema"
     },
     "web": {
