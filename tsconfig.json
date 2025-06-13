@@ -1,6 +1,13 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.Iterable",
+      "es2024"
+    ],
+    "target": "es2024",
+    "downlevelIteration": true,
     "strict": true,
     "paths": {
       "@/*": [
