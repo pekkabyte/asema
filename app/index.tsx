@@ -8,6 +8,7 @@ const parse5 = require('parse5');
 export default function Index() {
   const [text, onChangeText] = useState("https://react.dev");
   const [url, setUrl] = useState("https://react.dev");
+  const [content, setContent] = useState("");
 
   function handleSubmit() {
     setUrl(text);
@@ -15,7 +16,11 @@ export default function Index() {
       .then(response => response.text())
       .then((html) => {
         const document = parse5.parse(html);
-        console.log(getElementsByClass(document, "sp-code-editor"));
+        const results = getElementsByClass(document, "sp-code-editor");
+        for (let result of results) {
+          const content = parse5.serialize(result);
+          setContent(content);
+        }
       })
   }
 
@@ -55,7 +60,7 @@ export default function Index() {
         source={{ uri: url }}
       />
       <WebView
-        source={{ uri: url }}
+        source={{ html: content }}
       />
       <TextInput
         onChangeText={onChangeText}
