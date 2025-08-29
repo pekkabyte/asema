@@ -3,12 +3,16 @@ import { WebView } from 'react-native-webview';
 import { StyleSheet } from 'react-native';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Crypto from 'expo-crypto';
 const parse5 = require('parse5');
 
 export default function Index() {
+  interface Dictionary {
+    [key: string]: string;
+  }
   const [text, onChangeText] = useState("https://react.dev");
   const [url, setUrl] = useState("https://react.dev");
-  const [content, setContent] = useState("");
+  const [contents, setContents] = useState<Array<Dictionary>>([]);
 
   function handleSubmit() {
     setUrl(text);
@@ -18,17 +22,13 @@ export default function Index() {
         const document = parse5.parse(html);
         const results = getElementsByClass(document, "sp-code-editor");
         for (let result of results) {
-          const content = parse5.serialize(result);
-          setContent(content);
+          const content: string = parse5.serialize(result);
+          setContents(state => ([...state, {"id": Crypto.randomUUID(), "string": content}]));
         }
       })
   }
 
   function getElementsByClass(node: Node, className: string): Array<Element> {
-    interface Dictionary {
-      [key: string]: string;
-    }
-
     var results = new Array<Element>();
     for (let i=0; i<node.childNodes?.length; i++) {
       var element = node.childNodes[i] as Element;
@@ -59,9 +59,12 @@ export default function Index() {
       <WebView
         source={{ uri: url }}
       />
-      <WebView
-        source={{ html: content }}
-      />
+      {contents && contents.map && contents.map(content =>
+          <WebView 
+            key={content.id}
+            source={{html: content.string}}
+          />
+      )}
       <TextInput
         onChangeText={onChangeText}
         onSubmitEditing={handleSubmit}
