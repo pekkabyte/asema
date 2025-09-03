@@ -33,7 +33,13 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      [
+      "expo-asset",
+        {
+          "assets": ["@/assets/images/character_front.png"]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

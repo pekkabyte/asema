@@ -1,9 +1,10 @@
-import { TextInput } from "react-native";
+import { View, TextInput, Pressable } from "react-native";
 import { WebView } from 'react-native-webview';
 import { StyleSheet } from 'react-native';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Crypto from 'expo-crypto';
+import { Image } from 'expo-image';
 const parse5 = require('parse5');
 
 export default function Index() {
@@ -13,6 +14,7 @@ export default function Index() {
   const [text, onChangeText] = useState("https://react.dev");
   const [url, setUrl] = useState("https://react.dev");
   const [contents, setContents] = useState<Array<Dictionary>>([]);
+  const [menuVisible, setMenuVisiblity] = useState(false);
 
   function handleSubmit() {
     setUrl(text);
@@ -65,11 +67,19 @@ export default function Index() {
             source={{html: content.string}}
           />
       )}
-      <TextInput
+      {menuVisible &&
+        <TextInput
         onChangeText={onChangeText}
         onSubmitEditing={handleSubmit}
         value={text}
-      />
+      />}
+      <View style={{width:48, height:52, position: 'absolute', bottom: 64, right: 16}}>
+        <Pressable
+          onTouchEnd={() => setMenuVisiblity(!menuVisible)}>
+        <Image source={require('@/assets/images/character_front.png')} 
+          style={{width:48, height:52}}/>
+        </Pressable>
+      </View>
     </SafeAreaView>
   );
 }
