@@ -1,11 +1,14 @@
-import { View, TextInput, Pressable } from "react-native";
+import { View, ScrollView, TextInput, Pressable } from "react-native";
 import { WebView } from 'react-native-webview';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, useColorScheme } from 'react-native';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Crypto from 'expo-crypto';
 import { Image } from 'expo-image';
+import {Dimensions} from 'react-native';
 const parse5 = require('parse5');
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 export default function Index() {
   interface Dictionary {
@@ -15,6 +18,9 @@ export default function Index() {
   const [url, setUrl] = useState("https://react.dev");
   const [contents, setContents] = useState<Array<Dictionary>>([]);
   const [menuVisible, setMenuVisiblity] = useState(false);
+  const [characterLocation, setCharacterLocation] = useState(-24);
+  const contentStartingTags = "<html><head><meta name='viewport' content='width=width, initial-scale=1' /></head><body>";
+  const contentEndingTags = "</body></html>";
 
   function handleSubmit() {
     setUrl(text);
@@ -27,6 +33,7 @@ export default function Index() {
           const content: string = parse5.serialize(result);
           setContents(state => ([...state, {"id": Crypto.randomUUID(), "string": content}]));
         }
+        alert("hi "+useColorScheme());
       })
   }
 
@@ -61,21 +68,35 @@ export default function Index() {
       <WebView
         source={{ uri: url }}
       />
-      {contents && contents.map && contents.map(content =>
-          <WebView 
-            key={content.id}
-            source={{html: content.string}}
-          />
-      )}
-      {menuVisible &&
-        <TextInput
-        onChangeText={onChangeText}
-        onSubmitEditing={handleSubmit}
-        value={text}
-      />}
-      <View style={{width:48, height:52, position: 'absolute', bottom: 64, right: 16}}>
+      {menuVisible && 
+        <View style={styles.gameBackground}>
+          <TextInput
+            style={styles.addressBar}
+            onChangeText={onChangeText}
+            onSubmitEditing={handleSubmit}
+            value={text}/>
+          <ScrollView 
+            style={styles.inventory}
+            horizontal={true}
+            snapToAlignment="center">
+            {contents && contents.map && contents.map(content =>
+              <View
+                style={styles.contentCard}
+                key={content.id}>
+                <WebView 
+                  source={{html: contentStartingTags+content.string+contentEndingTags}}
+                />
+              </View>
+            )}
+          </ScrollView>
+        </View>
+      }
+      <View style={{width:48, height:52, position: 'absolute', top: '50%', right: characterLocation}}>
         <Pressable
-          onTouchEnd={() => setMenuVisiblity(!menuVisible)}>
+          onTouchEnd={() => {
+            setMenuVisiblity(!menuVisible);
+            setCharacterLocation(menuVisible ? -24 : 0);
+            }}>
         <Image source={require('@/assets/images/character_front.png')} 
           style={{width:48, height:52}}/>
         </Pressable>
@@ -86,6 +107,40 @@ export default function Index() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 1
   },
+  gameBackground: {
+    width: windowWidth,
+    height: windowHeight*0.55,
+    position: 'absolute', 
+    bottom: 0, 
+    backgroundColor: '#262626'
+  },
+  addressBar: {
+    width: '75%', 
+    marginTop: "5%",
+    marginLeft: "5%", 
+    paddingLeft: 5,
+    paddingRight: 5, 
+    color: 'white', 
+    fontSize: 20, 
+    // fontWeight: 'bold', 
+    // fontFamily: 'serif',
+    fontStyle: 'normal',
+    fontWeight: '800'
+  }, 
+  inventory: {
+    width: windowWidth,
+    height: windowHeight*0.4,
+  }, 
+  contentCard: {
+    width: windowWidth*0.85,
+    height: windowHeight*0.44,
+    borderColor: 'black',
+    borderWidth: 2,
+    borderRadius: 25, 
+    backgroundColor: 'white',
+    padding: 10, 
+    marginLeft: 20
+  }, 
 });
