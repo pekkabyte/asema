@@ -1,4 +1,4 @@
-package com.anonymous.asema
+package com.anonymous.asema.dev
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

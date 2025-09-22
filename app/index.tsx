@@ -1,11 +1,11 @@
 import { View, ScrollView, TextInput, Pressable } from "react-native";
 import { WebView } from 'react-native-webview';
-import { StyleSheet, useColorScheme } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Crypto from 'expo-crypto';
 import { Image } from 'expo-image';
 import {Dimensions} from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 const parse5 = require('parse5');
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -33,7 +33,6 @@ export default function Index() {
           const content: string = parse5.serialize(result);
           setContents(state => ([...state, {"id": Crypto.randomUUID(), "string": content}]));
         }
-        alert("hi "+useColorScheme());
       })
   }
 
@@ -64,7 +63,8 @@ export default function Index() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <StatusBar hidden={true} />
       <WebView
         source={{ uri: url }}
       />
@@ -91,7 +91,7 @@ export default function Index() {
           </ScrollView>
         </View>
       }
-      <View style={{width:48, height:52, position: 'absolute', top: '50%', right: characterLocation}}>
+      <View style={{width:48, height:52, position: 'absolute', top: '51%', right: characterLocation}}>
         <Pressable
           onTouchEnd={() => {
             setMenuVisiblity(!menuVisible);
@@ -101,7 +101,7 @@ export default function Index() {
           style={{width:48, height:52}}/>
         </Pressable>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -113,8 +113,8 @@ const styles = StyleSheet.create({
     width: windowWidth,
     height: windowHeight*0.55,
     position: 'absolute', 
-    bottom: 0, 
-    backgroundColor: '#262626'
+    top: '50%', 
+    backgroundColor: '#000000'
   },
   addressBar: {
     width: '75%', 
@@ -124,8 +124,6 @@ const styles = StyleSheet.create({
     paddingRight: 5, 
     color: 'white', 
     fontSize: 20, 
-    // fontWeight: 'bold', 
-    // fontFamily: 'serif',
     fontStyle: 'normal',
     fontWeight: '800'
   }, 
@@ -135,7 +133,7 @@ const styles = StyleSheet.create({
   }, 
   contentCard: {
     width: windowWidth*0.85,
-    height: windowHeight*0.44,
+    height: windowHeight*0.39,
     borderColor: 'black',
     borderWidth: 2,
     borderRadius: 25, 
