@@ -1,4 +1,4 @@
-import { View, ScrollView, TextInput, Pressable } from "react-native";
+import { View, ScrollView, FlatList, TextInput, Pressable, TouchableWithoutFeedback } from "react-native";
 import { WebView } from 'react-native-webview';
 import { StyleSheet } from 'react-native';
 import { useState } from 'react';
@@ -6,9 +6,18 @@ import * as Crypto from 'expo-crypto';
 import { Image } from 'expo-image';
 import {Dimensions} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
+import {
+  useSharedValue,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 const parse5 = require('parse5');
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
+const isPressed = useSharedValue(false);
+const offset = useSharedValue({ x: 0, y: 0 });
+const start = useSharedValue({ x: 0, y: 0 });
 
 export default function Index() {
   interface Dictionary {
@@ -18,7 +27,7 @@ export default function Index() {
   const [url, setUrl] = useState("https://react.dev");
   const [contents, setContents] = useState<Array<Dictionary>>([]);
   const [menuVisible, setMenuVisiblity] = useState(false);
-  const [characterLocation, setCharacterLocation] = useState(-24);
+  const [characterLocation, setCharacterLocation] = useState(-24); 
   const contentStartingTags = "<html><head><meta name='viewport' content='width=width, initial-scale=1' /></head><body>";
   const contentEndingTags = "</body></html>";
 
@@ -62,52 +71,99 @@ export default function Index() {
     return results;
   }
 
-  return (
-    <View style={styles.container}>
-      <StatusBar hidden={true} />
-      <WebView
-        source={{ uri: url }}
-      />
-      {menuVisible && 
-        <View style={styles.gameBackground}>
-          <TextInput
-            style={styles.addressBar}
-            onChangeText={onChangeText}
-            onSubmitEditing={handleSubmit}
-            value={text}/>
-          <ScrollView 
-            style={styles.inventory}
-            horizontal={true}
-            snapToAlignment="center">
-            {contents && contents.map && contents.map(content =>
-              <View
-                style={styles.contentCard}
-                key={content.id}>
-                <WebView 
-                  source={{html: contentStartingTags+content.string+contentEndingTags}}
-                />
-              </View>
-            )}
-          </ScrollView>
-        </View>
-      }
-      <View style={{width:48, height:52, position: 'absolute', top: '51%', right: characterLocation}}>
-        <Pressable
-          onTouchEnd={() => {
-            setMenuVisiblity(!menuVisible);
-            setCharacterLocation(menuVisible ? -24 : 0);
-            }}>
-        <Image source={require('@/assets/images/character_front.png')} 
-          style={{width:48, height:52}}/>
-        </Pressable>
+  const DATA = [
+    {
+      id: url,
+    },
+  ];
+
+  const Item = () => (
+      <View style={{width: windowWidth, height: windowHeight}}
+        pointerEvents="none">
+        <WebView
+          source={{ uri: url }}
+        />
       </View>
-    </View>
+  );
+
+  const gesture = Gesture.Pan()
+    .onUpdate((e) => {
+      offset.value = {
+        x: e.translationX + start.value.x,
+        y: e.translationY + start.value.y,
+      };
+    })
+    .onEnd(() => {
+      start.value = {
+        x: offset.value.x,
+        y: offset.value.y,
+      };
+    });
+
+  const animatedStyles = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { translateX: offset.value.x },
+        { translateY: offset.value.y },
+      ],
+    };
+  });
+
+  return (
+    <GestureHandlerRootView style={styles.container}>
+      <StatusBar hidden={true} />
+      <GestureDetector gesture={gesture}>
+        <Animated.View style={animatedStyles}>
+          <FlatList
+            data={DATA}
+            renderItem={({item}) => <Item />}
+            keyExtractor={item => item.id}
+            horizontal={true}
+          />
+          {menuVisible && 
+            <View style={styles.gameBackground}>
+              <TextInput
+                style={styles.addressBar}
+                onChangeText={onChangeText}
+                onSubmitEditing={handleSubmit}
+                value={text}/>
+              <ScrollView 
+                style={styles.inventory}
+                horizontal={true}
+                snapToAlignment="center">
+                {contents && contents.map && contents.map(content =>
+                  <View
+                    style={styles.contentCard}
+                    key={content.id}>
+                    <WebView 
+                      source={{html: contentStartingTags+content.string+contentEndingTags}}
+                    />
+                  </View>
+                )}
+              </ScrollView>
+            </View>
+          }
+          <View style={{width:48, height:52, position: 'absolute', top: '51%', right: characterLocation}}>
+            <Pressable
+              onTouchEnd={() => {
+                setMenuVisiblity(!menuVisible);
+                setCharacterLocation(menuVisible ? -24 : 0);
+                }}>
+            <Image source={require('@/assets/images/character_front.png')} 
+              style={{width:48, height:52}}/>
+            </Pressable>
+          </View>
+        </Animated.View>
+      </GestureDetector>
+    </GestureHandlerRootView>
   );
 }
 
+
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 1,
+    backgroundColor: 'black'
   },
   gameBackground: {
     width: windowWidth,

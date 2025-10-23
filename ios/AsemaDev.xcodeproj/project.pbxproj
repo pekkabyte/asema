@@ -70,7 +70,7 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				9586F4BE2D6944C1A9375243 /* Resources */,
+				B4C49AA6727D4F3B93583313 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -94,7 +94,7 @@
 			path = AsemaDev/Supporting;
 			sourceTree = "<group>";
 		};
-		9586F4BE2D6944C1A9375243 /* Resources */ = {
+		B4C49AA6727D4F3B93583313 /* Resources */ = {
 			isa = "PBXGroup";
 			children = (
 			);
