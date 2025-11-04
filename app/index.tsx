@@ -1,4 +1,4 @@
-import { View, ScrollView, FlatList, TextInput, Pressable, TouchableWithoutFeedback } from "react-native";
+import { View, ScrollView, FlatList, TextInput, Pressable } from "react-native";
 import { WebView } from 'react-native-webview';
 import { StyleSheet } from 'react-native';
 import { useState } from 'react';
@@ -11,13 +11,16 @@ import Animated from 'react-native-reanimated';
 import {
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedReaction,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 const parse5 = require('parse5');
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
-const isPressed = useSharedValue(false);
-const offset = useSharedValue({ x: 0, y: 0 });
+const panOffset = useSharedValue({ x: 0, y: 0 });
 const start = useSharedValue({ x: 0, y: 0 });
+const webViewContentOffset = useSharedValue({ x: 0, y: 0 });
+const webViewContentSize = useSharedValue({ width: 0, height: 0 });
 
 export default function Index() {
   interface Dictionary {
@@ -77,37 +80,87 @@ export default function Index() {
     },
   ];
 
+  let webViewRef: WebView | null;
+
   const Item = () => (
       <View style={{width: windowWidth, height: windowHeight}}
         pointerEvents="none">
         <WebView
+          ref={webView => {webViewRef = webView}}
           source={{ uri: url }}
+          onScroll={(event) => {
+            const offset = event.nativeEvent.contentOffset
+            webViewContentOffset.value = {
+              x: offset.x,
+              y: offset.y,
+            };
+            // console.log(offset)
+            const size = event.nativeEvent.contentSize
+            webViewContentSize.value = {
+              width: size.width,
+              height: size.height,
+            };
+            // console.log(event.nativeEvent.zoomScale)
+          }}
         />
       </View>
   );
 
   const gesture = Gesture.Pan()
     .onUpdate((e) => {
-      offset.value = {
+      panOffset.value = {
         x: e.translationX + start.value.x,
         y: e.translationY + start.value.y,
       };
     })
     .onEnd(() => {
       start.value = {
-        x: offset.value.x,
-        y: offset.value.y,
+        x: panOffset.value.x,
+        y: panOffset.value.y,
       };
-    });
+    })
+    .onTouchesUp(() => {
+      start.value = {
+        x: 0,
+        y: panOffset.value.y,
+      };
+    })
 
   const animatedStyles = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { translateX: offset.value.x },
-        { translateY: offset.value.y },
-      ],
-    };
+    // console.log(webViewContentOffset.value.y+" >= "+webViewContentSize.value.height+", "+webViewContentOffset.value.y+" <= 0, "+panOffset.value.y+" < 0")
+    if ((webViewContentOffset.value.y >= webViewContentSize.value.height) ||
+        (webViewContentOffset.value.y <= 0)) {
+      return {
+          transform: [
+            { translateX: Math.min(panOffset.value.x, 0) },
+            { translateY: panOffset.value.y },
+          ],
+      }
+    } else {
+      return {
+          transform: [
+            { translateX: Math.min(panOffset.value.x, 0) },
+            { translateY: 0 },
+          ],
+      }
+    }
   });
+
+  const scrollWebView = (x: number, y: number) => {
+    webViewRef?.injectJavaScript('window.scroll('+-x+', '+-y+')')
+    // webViewRef?.injectJavaScript('window.ReactNativeWebView.postMessage()')
+  }
+
+  useAnimatedReaction(
+    () => {
+      return panOffset.value;
+    },
+    (currentValue, previousValue) => {
+      if (currentValue !== previousValue) {
+        scheduleOnRN(scrollWebView, currentValue.x, currentValue.y);
+      }
+    }
+  );
 
   return (
     <GestureHandlerRootView style={styles.container}>
