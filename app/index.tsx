@@ -1,4 +1,4 @@
-import { View, ScrollView, FlatList, TextInput, Pressable } from "react-native";
+import { View, ScrollView, FlatList, TextInput, Pressable, Text } from "react-native";
 import { WebView } from 'react-native-webview';
 import { StyleSheet } from 'react-native';
 import { useState } from 'react';
@@ -6,6 +6,7 @@ import * as Crypto from 'expo-crypto';
 import { Image } from 'expo-image';
 import {Dimensions} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import Constants from 'expo-constants'
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import {
@@ -26,8 +27,8 @@ export default function Index() {
   interface Dictionary {
     [key: string]: string;
   }
-  const [text, onChangeText] = useState("https://react.dev");
-  const [url, setUrl] = useState("https://react.dev");
+  const [text, onChangeText] = useState("yle.fi/news");
+  const [url, setUrl] = useState("yle.fi/news");
   const [contents, setContents] = useState<Array<Dictionary>>([]);
   const [menuVisible, setMenuVisiblity] = useState(false);
   const [characterLocation, setCharacterLocation] = useState(-24); 
@@ -36,16 +37,89 @@ export default function Index() {
 
   function handleSubmit() {
     setUrl(text);
-    fetch(url)
+    fetch("https://yle.fi/rss/news")
       .then(response => response.text())
       .then((html) => {
         const document = parse5.parse(html);
-        const results = getElementsByClass(document, "sp-code-editor");
+        // const results = getElementsByClass(document, "sp-code-editor");
+        const results = getRSSElements(document, "item"); 
         for (let result of results) {
-          const content: string = parse5.serialize(result);
-          setContents(state => ([...state, {"id": Crypto.randomUUID(), "string": content}]));
+          // const content: string = parse5.serialize(result);
+          setContents(state => ([...state, {"id": Crypto.randomUUID(), "string": result}]));
         }
       })
+  }
+
+  function getRSSElements(node: Node, tag: string): Array<string> {
+    var results = new Array<string>();
+    var concatString = ""
+    for (let i=0; i<node.childNodes?.length; i++) {
+      var element = node.childNodes[i] as Element;
+      for (const [key, value] of Object.entries(element)) {
+        if (key == "tagName" && value == "item") {
+          // console.log(element)
+          for (let j=0; j<element.childNodes?.length; j++) {
+            var childElement = element.childNodes[j] as Element;
+            for (const [childKey, childValue] of Object.entries(childElement)) {
+              // console.log(childKey+", "+childValue)
+              if (childKey == "tagName" && childValue == "title") {
+                for (let k=0; k<childElement.childNodes?.length; k++) {
+                  var titleNode = childElement.childNodes[k] as Element;
+                  for (const [titleNodeKey, titleNodeValue] of Object.entries(titleNode)) {
+                    if (titleNodeKey == "value") {
+                      concatString = concatString.concat(titleNodeValue+"\n\n")
+                    }
+                  }
+                }
+              }
+              if (childKey == "nodeName" && childValue == "#text") {
+                for (const [linkNodeKey, linkNodeValue] of Object.entries(childElement)) {
+                  if (linkNodeKey == "value") {
+                    concatString = concatString.concat(linkNodeValue+"\n\n")
+                  }
+                }
+              }
+              if (childKey == "tagName" && childValue == "description") {
+                for (let k=0; k<childElement.childNodes?.length; k++) {
+                  var descriptionNode = childElement.childNodes[k] as Element;
+                  for (const [descriptionNodeKey, descriptionNodeValue] of Object.entries(descriptionNode)) {
+                    if (descriptionNodeKey == "value") {
+                      concatString = concatString.concat(descriptionNodeValue)
+                    }
+                  }
+                }
+              }
+            }
+          }
+          if (concatString != "") {
+            results.push(concatString)
+            concatString = ""
+          }
+        }
+      }
+      const result = getRSSElements(node.childNodes[i], tag);
+      if (result.length > 0) {
+        results = results.concat(result);
+      }
+    }
+    return results;
+  }
+
+  function getElementsByTag(node: Node, tag: string): Array<Element> {
+    var results = new Array<Element>();
+    for (let i=0; i<node.childNodes?.length; i++) {
+      var element = node.childNodes[i] as Element;
+      for (const [key, value] of Object.entries(element)) {
+        if (key == "tagName" && value == tag) {
+          results.push(element);
+        }
+      }
+      const result = getElementsByTag(node.childNodes[i], tag);
+      if (result.length > 0) {
+        results = results.concat(result);
+      }
+    }
+    return results;
   }
 
   function getElementsByClass(node: Node, className: string): Array<Element> {
@@ -83,7 +157,7 @@ export default function Index() {
   let webViewRef: WebView | null;
 
   const Item = () => (
-      <View style={{width: windowWidth, height: windowHeight}}
+      <View style={{width: windowWidth, height: windowHeight, top: 34}}
         pointerEvents="none">
         <WebView
           ref={webView => {webViewRef = webView}}
@@ -94,14 +168,13 @@ export default function Index() {
               x: offset.x,
               y: offset.y,
             };
-            // console.log(offset)
             const size = event.nativeEvent.contentSize
             webViewContentSize.value = {
               width: size.width,
               height: size.height,
             };
-            // console.log(event.nativeEvent.zoomScale)
           }}
+          // onLoadEnd={handleSubmit}
         />
       </View>
   );
@@ -127,9 +200,7 @@ export default function Index() {
     })
 
   const animatedStyles = useAnimatedStyle(() => {
-    // console.log(webViewContentOffset.value.y+" >= "+webViewContentSize.value.height+", "+webViewContentOffset.value.y+" <= 0, "+panOffset.value.y+" < 0")
-    if ((webViewContentOffset.value.y >= webViewContentSize.value.height) ||
-        (webViewContentOffset.value.y <= 0)) {
+    if (webViewContentOffset.value.y >= webViewContentSize.value.height) {
       return {
           transform: [
             { translateX: Math.min(panOffset.value.x, 0) },
@@ -148,7 +219,6 @@ export default function Index() {
 
   const scrollWebView = (x: number, y: number) => {
     webViewRef?.injectJavaScript('window.scroll('+-x+', '+-y+')')
-    // webViewRef?.injectJavaScript('window.ReactNativeWebView.postMessage()')
   }
 
   useAnimatedReaction(
@@ -164,7 +234,7 @@ export default function Index() {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <StatusBar hidden={true} />
+      {/* <StatusBar backgroundColor="#262626" translucent={true} /> */}
       <GestureDetector gesture={gesture}>
         <Animated.View style={animatedStyles}>
           <FlatList
@@ -173,30 +243,7 @@ export default function Index() {
             keyExtractor={item => item.id}
             horizontal={true}
           />
-          {menuVisible && 
-            <View style={styles.gameBackground}>
-              <TextInput
-                style={styles.addressBar}
-                onChangeText={onChangeText}
-                onSubmitEditing={handleSubmit}
-                value={text}/>
-              <ScrollView 
-                style={styles.inventory}
-                horizontal={true}
-                snapToAlignment="center">
-                {contents && contents.map && contents.map(content =>
-                  <View
-                    style={styles.contentCard}
-                    key={content.id}>
-                    <WebView 
-                      source={{html: contentStartingTags+content.string+contentEndingTags}}
-                    />
-                  </View>
-                )}
-              </ScrollView>
-            </View>
-          }
-          <View style={{width:48, height:52, position: 'absolute', top: '51%', right: characterLocation}}>
+          <View style={{width:48, height:52, position: 'absolute', top: '51%', right: characterLocation, display: 'none'}}>
             <Pressable
               onTouchEnd={() => {
                 setMenuVisiblity(!menuVisible);
@@ -205,6 +252,30 @@ export default function Index() {
             <Image source={require('@/assets/images/character_front.png')} 
               style={{width:48, height:52}}/>
             </Pressable>
+          </View>
+          <Image source={require('@/assets/images/adaptive-icon-long.svg')} 
+              style={{width:100, height:1000, position: 'absolute', top: 4, left: windowWidth-25}}/>
+          <View style={styles.gameBackground}>
+            <TextInput
+              style={styles.addressBar}
+              onChangeText={onChangeText}
+              onSubmitEditing={handleSubmit}
+              value={text}/>
+            <ScrollView 
+              style={styles.inventory}
+              // horizontal={true}
+              snapToAlignment="center">
+              {contents && contents.map && contents.map(content =>
+                <View
+                  style={styles.contentCard}
+                  key={content.id}>
+                  {/* <WebView 
+                    source={{html: contentStartingTags+content.string+contentEndingTags}}
+                  /> */}
+                  <Text style={{color: "white"}}>{content.string}</Text>
+                </View>
+              )}
+            </ScrollView>
           </View>
         </Animated.View>
       </GestureDetector>
@@ -220,17 +291,18 @@ const styles = StyleSheet.create({
   },
   gameBackground: {
     width: windowWidth,
-    height: windowHeight*0.55,
+    height: windowHeight,
     position: 'absolute', 
-    top: '50%', 
-    backgroundColor: '#000000'
+    top: 20,
+    left: windowWidth+45, 
+    backgroundColor: '#000000',
   },
   addressBar: {
     width: '75%', 
-    marginTop: "5%",
-    marginLeft: "5%", 
-    paddingLeft: 5,
-    paddingRight: 5, 
+    // marginTop: "5%",
+    // marginLeft: "5%", 
+    // paddingLeft: 5,
+    // paddingRight: 5, 
     color: 'white', 
     fontSize: 20, 
     fontStyle: 'normal',
@@ -242,12 +314,13 @@ const styles = StyleSheet.create({
   }, 
   contentCard: {
     width: windowWidth*0.85,
-    height: windowHeight*0.39,
+    // height: windowHeight*0.25,
+    // lineHeight: windowHeight*0.25,
     borderColor: 'black',
     borderWidth: 2,
     borderRadius: 25, 
-    backgroundColor: 'white',
+    backgroundColor: '#262626',
     padding: 10, 
-    marginLeft: 20
+    // marginLeft: 20
   }, 
 });
